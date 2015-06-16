@@ -2270,7 +2270,7 @@ What did you just do? The `integrated-template.json` file defined a template. By
 In the web console, logged in as `joe`, find the "Quickstart" project, and
 then hit the "Create +" button. We've seen this page before, but now it contains
 something new -- an "instant app(lication)". An instant app is a "special" kind
-of template (relaly, it just has the "instant-app" tag). The idea behind an
+of template (really, it just has the "instant-app" tag). The idea behind an
 "instant app" is that, when creating an instance of the template, you will have
 a fully functional application. in this example, our "instant" app is just a
 simple key-value storage and retrieval webpage.
@@ -4079,23 +4079,28 @@ need them too.  In previous examples we used environment variables in
 be done for configuring a `Pod`'s proxy at runtime:
 
     {
-      "apiVersion": "v1beta1",
+      "apiVersion": "v1beta3",
       "kind": "DeploymentConfig",
       "metadata": {
         "name": "frontend"
       },
-      "template": {
-        "controllerTemplate": {
-          "podTemplate": {
-            "desiredState": {
-              "manifest": {
-                "containers": [
-                  {
-                    "env": [
-                      {
-                        "name": "HTTP_PROXY",
-                        "value": "http://USER:PASSWORD@IPADDR:PORT"
-                      },
+      ...
+        "spec": {
+          "containers": [
+            {
+              "name": "ruby-helloworld",
+              "image": "ruby-sample",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "protocol": "TCP"
+                }
+              ],
+              "env": [
+                {
+                  "name": "HTTP_PROXY",
+                  "value": "http://USER:PASSWORD@IPADDR:PORT"
+                },
     ...
 
 ## Git Repository Access
