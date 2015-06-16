@@ -2573,55 +2573,50 @@ Remember that a `BuildConfig`(uration) tells OpenShift how to do a build.
 Still as the `alice` user, take a look at the current `BuildConfig` for our
 frontend:
 
-    osc get buildconfig ruby-example -o yaml
-    apiVersion: v1beta1
+    osc get buildconfig ruby-hello-world -o yaml
+    apiVersion: v1beta3
     kind: BuildConfig
     metadata:
-      creationTimestamp: 2015-03-10T15:40:26-04:00
-      labels:
-        template: application-template-stibuild
-      name: ruby-example
+      creationTimestamp: 2015-06-16T16:02:18Z
+      name: ruby-hello-world
       namespace: wiring
-      resourceVersion: "831"
-      selfLink: /osapi/v1beta1/buildConfigs/ruby-example?namespace=wiring
-      uid: 4cff2e5e-c75d-11e4-806e-525400b33d1d
-    parameters:
+      resourceVersion: "30258"
+      selfLink: /osapi/v1beta3/namespaces/wiring/buildconfigs/ruby-hello-world
+      uid: 1086c72d-1441-11e5-b0bd-525400b33d1d
+    spec:
       output:
         to:
-          kind: ImageStream
-          name: origin-ruby-sample
+          kind: ImageStreamTag
+          name: ruby-hello-world:latest
+      resources: {}
       source:
         git:
-          uri: git://github.com/openshift/ruby-hello-world.git
           ref: beta4
+          uri: https://github.com/openshift/ruby-hello-world
         type: Git
       strategy:
-        stiStrategy:
-          builderImage: openshift/ruby-20-rhel7
-          image: openshift/ruby-20-rhel7
-        type: STI
-    triggers:
-    - github:
-        secret: secret101
-      type: github
-    - generic:
-        secret: secret101
-      type: generic
-    - imageChange:
-        from:
-          name: ruby-20-rhel7
-        image: openshift/ruby-20-rhel7
-        imageRepositoryRef:
-          name: ruby-20-rhel7
-        tag: latest
-      type: imageChange
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: ruby:latest
+            namespace: openshift
+        type: Source
+      triggers:
+      - github:
+          secret: D7uSQTkWDc7eOSIN7STn
+        type: github
+      - generic:
+          secret: xPtgIEsIqUpPf2EyW5sF
+        type: generic
+    status:
+      lastVersion: 1
 
 As you can see, the current configuration points at the
 `openshift/ruby-hello-world` repository. Since you've forked this repo, let's go
 ahead and re-point our configuration. Our friend `osc edit` comes to the rescue
 again:
 
-    osc edit bc ruby-example
+    osc edit bc ruby-hello-world
 
 Change the "uri" reference to match the name of your Github
 repository. Assuming your github user is `alice`, you would point it
@@ -2633,7 +2628,7 @@ that the `uri` has been updated.
 
 ### Change the Code
 Github's web interface will let you make edits to files. Go to your forked
-repository (eg: https://github.com/alice/ruby-hello-world), select the `beta3`
+repository (eg: https://github.com/alice/ruby-hello-world), select the `beta4`
 branch, and find the file `main.erb` in the `views` folder.
 
 Change the following HTML:
@@ -2671,7 +2666,7 @@ To find the webhook URL, you can visit the web console, click into the
 project, click on *Browse* and then on *Builds*. You'll see two webhook
 URLs. Copy the *Generic* one. It should look like:
 
-    https://ose3-master.example.com:8443/osapi/v1beta3/namespaces/wiring/buildconfigs/ruby-example/webhooks/secret101/generic
+    https://ose3-master.example.com:8443/osapi/v1beta3/namespaces/wiring/buildconfigs/ruby-hello-world/webhooks/xPtgIEsIqUpPf2EyW5sF/generic
 
 **Note**: As of the cut of beta 4, the generic webhook URL was incorrect in the
 webUI. Note the correct syntax above. This is fixed already, but did not make it
@@ -2679,11 +2674,9 @@ in:
 
     https://github.com/openshift/origin/issues/2981
 
-If you look at the `frontend-config.json` file that you created earlier,
-you'll notice the same "secret101" entries in triggers. These are
-basically passwords so that just anyone on the web can't trigger the
-build with knowledge of the name only. You could of course have adjusted
-the passwords or had the template generate randomized ones.
+These secrets are basically passwords so that just anyone on the web can't
+trigger the build with knowledge of the name only. You could of course have
+adjusted the passwords.
 
 This time, in order to run a build for the frontend, we'll use `curl` to hit our
 webhook URL.
@@ -2696,14 +2689,17 @@ You should see that the first build had completed. Then, `curl`:
 
     curl -i -H "Accept: application/json" \
     -H "X-HTTP-Method-Override: PUT" -X POST -k \
-    https://ose3-master.example.com:8443/osapi/v1beta3/namespaces/wiring/buildconfigs/ruby-example/webhooks/secret101/generic
+    https://ose3-master.example.com:8443/osapi/v1beta3/namespaces/wiring/buildconfigs/ruby-hello-world/webhooks/xPtgIEsIqUpPf2EyW5sF/generic
+
+**Note:** You will need to modify your curl command to include the secret in
+your buildconfig.
 
 And now `get build` again:
 
     osc get build
     NAME                  TYPE      STATUS     POD
-    ruby-example-1   Source    Complete   ruby-example-1
-    ruby-example-2   Source    Pending    ruby-example-2
+    ruby-hello-world-1    Source    Complete   ruby-hello-world-1
+    ruby-hello-world-2    Source    Pending    ruby-hello-world-2
 
 You can see that this could have been part of some CI/CD workflow that
 automatically called our webhook once the code was tested.
@@ -2712,7 +2708,7 @@ You can also check the web interface (logged in as `alice`) and see
 that the build is running. Once it is complete, point your web browser
 at the application:
 
-    http://wiring.cloudapps.example.com/
+    http://ruby-hello-world.wiring.cloudapps.example.com/
 
 You should see your big fat typo.
 
@@ -2742,21 +2738,22 @@ Simple, right?
 You can rollback a deployment using the CLI. Let's go and checkout what a rollback to
 `frontend-1` would look like:
 
-    osc rollback frontend-1 --dry-run
+    osc rollback ruby-hello-world-1 --dry-run
 
 Since it looks OK, let's go ahead and do it:
 
-    osc rollback frontend-1
+    osc rollback ruby-hello-world-1
 
 If you look at the `Browse` tab of your project, you'll see that in the `Pods`
-section there is a `frontend-3...` pod now. After a few moments, revisit the
-application in your web browser, and you should see the old "Welcome..." text.
+section there is a `ruby-hello-world-3...` pod now. After a few moments, revisit
+the application in your web browser, and you should see the old "Welcome..."
+text.
 
 ### Activate
 Corporate marketing called again. They think the typo makes us look hip and
 cool. Let's now roll forward (activate) the typo-enabled application:
 
-    osc rollback frontend-2
+    osc rollback ruby-hello-world-2
 
 ## A Simple PHP Example
 Let's take some time to build a simple PHP example. Using PHP will make it easy
