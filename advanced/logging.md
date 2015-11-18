@@ -33,26 +33,13 @@ openshift.io/node-selector: ""
 * want kibana/es on infra
 * want fluentd on every node (so it can slurp local container logs)
 
-## create cert for kibana
-Create the cert for kibana:
-
-    CA=/etc/origin/master
-    oadm ca create-server-cert --signer-cert=$CA/ca.crt \
-          --signer-key=$CA/ca.key --signer-serial=$CA/ca.serial.txt \
-          --hostnames='kibana.cloudapps.example.com' \
-          --cert=/root/kibana.crt --key=/root/kibana.key
-
-## create secrets
+## create secret
     
-    oc secrets new logging-deployer \
-       kibana.crt=/root/kibana.crt \
-       kibana.key=/root/kibana.key \
-       kibana-ops.crt=/root/kibana.crt \
-       kibana-ops.key=/root/kibana.key
+    oc secrets new logging-deployer nothing=/dev/null
 
 ## create service account
 
-    oc create -f ~/training/content/logging-sa.yaml
+    oc create -f ~/training/content/advanced/logging-sa.yaml
     
     oc policy add-role-to-user edit \
               system:serviceaccount:logging:logging-deployer
