@@ -11,7 +11,7 @@ delete quota/limits
 
 ## metrics sa
 
-    oc create -f ~/training/metrics-deployer-setup.yaml
+    oc create -f ~/training/content/advanced/metrics-deployer-setup.yaml
 
 ## metrics permissions/accounts
 
@@ -29,7 +29,7 @@ as `root`:
 
 ## metrics template
 
-    oc create -f metrics.yaml
+    oc create -f ~/training/content/advanced/metrics.yaml
 
 ## set up volumes
 
