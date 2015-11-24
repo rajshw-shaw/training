@@ -58,3 +58,11 @@ as `root`:
         Pod "metrics-deployer-1s7nu" created
     --> Success
         Run 'oc status' to view your app.
+
+## update config
+
+/etc/origin/master/master-config.yaml
+
+    assetConfig:
+        ...
+        metricsPublicURL: "https://metrics.cloudapps.example.com/hawkular/metrics"
