@@ -437,7 +437,7 @@ we know we can point the wildcard DNS entry at the master and we'll be all set.
 
 For a true HA implementation, one would want multiple "infra" nodes and
 multiple, clustered router instances. Please see the "high availability"
-documentation for more information on how tihs can be achieved:
+documentation for more information on how this can be achieved:
 
     https://docs.openshift.com/enterprise/latest/admin_guide/high_availability.html
 
